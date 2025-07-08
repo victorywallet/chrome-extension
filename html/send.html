@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send </title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: monospace; 
+            --body-font: monospace;
+            background-color: #222;
+        }
+
+
+        #sender {
+            border-color: aqua;
+            border-width: thin;
+            border-style: solid;
+            border-radius: 5px;
+            padding: 5px;
+        }
+
+        .container {
+            border-radius: 10ch;
+            padding: 20px;
+            width: 600px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 8px 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        .title {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 16px 0;
+        }
+
+        .logo {
+            height: 48px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .account {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 16px 0;
+        }
+
+        .amount-section {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin: 16px 0;
+        }
+
+        .amount-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .usd-conversion {
+            color: #a1a1a1;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .available-balance {
+            color: #a1a1a1;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 46px;
+        }
+
+        fluent-progress-ring{
+            height: 3ch;
+        }
+
+        #tokensMenu {
+            border-color: aqua;
+            border-style: ridge;
+            position: fixed; 
+            position-area: center;
+            top: 40px;
+        }
+
+        .menu-content {
+            display: flex;
+            justify-content: space-between;
+            width: 30ch;
+        }
+
+        fluent-menu-item img {
+            height: 2ch;
+            vertical-align: sub;
+        }
+
+
+    </style>
+</head>
+
+<body>
+    <script src="../dist/send.js"></script>
+    <fluent-design-system-provider base-layer-luminance="0.02" accent-base-color="#00FFFF" body-font="monospace">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <h2 id="sender"></h2>
+                </div>
+                <div class="header-right">
+                    <h3>Tokens</h3>
+                    <fluent-progress-ring id="progress" hidden></fluent-progress-ring>
+                    <fluent-button appearance="stealth" aria-label="Menu" id="tokensBt" hidden>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="4" y="6" width="16" height="2" fill="currentColor" />
+                            <rect x="4" y="11" width="16" height="2" fill="currentColor" />
+                            <rect x="4" y="16" width="16" height="2" fill="currentColor" />
+                        </svg>
+                    </fluent-button>                    
+                </div>
+            </div>
+
+            <!-- Title -->
+            <div class="title">
+                <img class="logo" ></img>
+                <h2 id="title">Send WETH</h2>
+                <div class="available-balance">Available 0.0119 WETH</div>
+            </div>
+
+            <!-- Account Info -->
+            <div class="account">
+                <fluent-text-field id="to" placeholder="recipient" style="flex: 1;"></fluent-text-field>
+            </div>
+
+            <!-- Amount Input -->
+            <div class="amount-section">
+                <div class="amount-input">
+                    <fluent-text-field id="amount" appearance="outline" placeholder="amount" style="flex: 1;"></fluent-text-field>
+                    <fluent-button id="max" appearance="outline">Max</fluent-button>
+                </div>
+                <div class="usd-conversion"></div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="buttons">
+                <fluent-button id="cancel" appearance="outline">Cancel</fluent-button>
+                <fluent-button id="send" appearance="accent">Send</fluent-button>
+            </div>
+        </div>
+
+        <fluent-menu id="tokensMenu" hidden ></fluent-menu>
+
+    </fluent-design-system-provider>
+</body>
+
+</html>

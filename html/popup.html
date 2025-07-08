@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Victory Wallet</title>
+  <!-- Import Fluent UI Web Components -->
+  <style>
+    body {
+      --body-font: monospace;
+      font-family: monospace;
+      font-size: medium;
+      display: flex;
+      justify-content: center;
+      background-color: black;
+      overflow-x: hidden;
+    }
+
+    .wallet-container {
+      width: 350px;
+      min-height: 580px;
+      text-align: left;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .topCard {
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      margin-top: 20px;
+      /*height: 13em;
+      overflow-y: hidden;*/
+    }
+
+    .balance {
+      font-size: 2em;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .amount {
+      font-size: 1em;
+      color: aquamarine;
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+    }
+
+    .action {
+      /*border-color: aqua;*/
+      border-style: solid;
+      border-width: thin;
+    }
+
+
+    fluent-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      /*            background-color: #2d2d2d;*/
+      border-radius: 4px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    fluent-list-item:hover {
+      background-color: #222;
+    }
+
+    .tx-info {
+      display: flex;
+      align-items: normal;
+      width: 100%;
+    }
+
+    .tx-info img{
+      width: 32px;
+      height: 32px;
+    }
+
+    .tx-details {
+      margin-left: 10px;  
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .token {
+      display: flex;
+      place-content: space-between;
+    }
+
+    a {
+      color: aqua;
+    }
+
+    fluent-select {
+      min-width: 60px;
+      border-style: solid;
+      border-width: thin;
+      border-radius: 5px;
+    }
+
+    fluent-option {
+      border-style: solid;
+      border-radius: 5px;
+      border-bottom: none;
+      margin: 1px;
+    }
+
+    .img16 {
+      width: 16px;
+      height: 16px;
+      vertical-align: sub;
+      margin: 2px;
+    }
+
+    .receipt {
+      background-color: aquamarine;
+    }
+  </style>
+</head>
+
+<body>
+  <script src="../dist/popup.js"></script>
+
+  <fluent-design-system-provider base-layer-luminance="0.02" accent-base-color="#00FFFF" >
+
+    <div class="wallet-container">
+
+      <fluent-select title="Select a wallet" id="wallet" style="width: 12em;margin-left: 4px; border-color: transparent;">
+      </fluent-select>
+
+      <fluent-select title="Select a chain" id="chain" style="width: 9em;border-color: transparent">
+        <fluent-option value="0x1"><img class="img16" src="../icons/eth.png"></img> Ethereum</fluent-option>
+        <fluent-option value="0x171"><img class="img16" src="../icons/pls.png"></img> PulseChain</fluent-option>
+      </fluent-select>
+
+      <fluent-button appearance="stealth" id="side" style="float: inline-end; align-items: flex-end;">
+        <img src="../icons/right-panel.svg">
+      </fluent-button>
+
+      <!-- Wallet Balance Card -->
+      <fluent-card class="topCard">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center;">
+            <span>Balance</span>
+          </div>
+          <fluent-button appearance="stealth" id="openMenu">
+            <span slot="start">⋮</span>
+          </fluent-button>
+        </div>
+
+        <div id="tokens">
+          <h3 class="token"> <div></div> <div class="amount"></div></h3>
+          <h3 class="token" hidden> <div></div> <div class="amount"></div></h3>
+          <h3 class="token" hidden> <div></div> <div class="amount"></div></h3>
+          <h3 class="token" hidden> <div></div> <div class="amount"></div></h3>
+          <h3 class="token" hidden> <div></div> <div class="amount"></div></h3>
+        </div>
+      </fluent-card>
+
+      <fluent-menu id="menu1" hidden style="position: fixed; border-color: aqua;
+                                            border-style: ridge;
+                                            left: 140px;
+                                            top: 81px;">
+        <fluent-menu-item id="balances">Show full balance</fluent-menu-item>
+        <fluent-menu-item id="edit">Edit your tokens</fluent-menu-item>
+      </fluent-menu>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <fluent-button id="send" class="action" appearance="lightweight">Send</fluent-button>
+        <fluent-button id="recv" class="action" appearance="lightweight">Receive</fluent-button>
+        <fluent-button id="swap" class="action" appearance="lightweight">Swap</fluent-button>
+        <fluent-button id="bridge" class="action" appearance="lightweight">Bridge</fluent-button>
+        <fluent-button id="buy" class="action" appearance="lightweight">Buy</fluent-button>
+      </div>
+
+       <fluent-menu id="menu2" hidden style="position: fixed; border-color: aqua;
+                                            border-style: ridge;
+                                            left: 240px;
+                                            top: 181px;">
+        <fluent-menu-item id="0xcoast">0xCoast</fluent-menu-item>
+        <fluent-menu-item id="rampnow">RampNow</fluent-menu-item>
+        
+      </fluent-menu>
+
+      <!-- Crypto List -->
+      <fluent-list id="history">
+      </fluent-list>
+
+
+
+    </div> 
+    
+    <fluent-dialog id="rcvDialog" hidden trap-focus modal style="background-color: #222;
+                                                                top: 0;
+                                                                position: absolute;
+                                                                visibility: visible;
+                                                                width: 100%;
+                                                                height: 100%;
+                                                                place-content: center; place-items: center;">
+
+    <fluent-card style="border-radius: 5px; border-color: aqua; border-style: solid; padding: 10px; width: 320px; height: 400px; display: flex; flex-direction: column; align-items: center;">
+      <fluent-button appearance="stealth" style="align-self: flex-end;" id="rcvClose">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18" stroke="aqua" stroke-width="2" stroke-linecap="round" fill="currentColor"/>
+            <path d="M6 6L18 18" stroke="aqua" stroke-width="2" stroke-linecap="round" fill="currentColor"/>
+          </svg>
+      </fluent-button>
+      <br>
+      <canvas id="qr"></canvas>
+      <br>
+      <h4 id="addr"></h4>
+      <fluent-button appearance="stealth" id="copy">
+        <img class="img16" src="../icons/copy.svg">
+        Copy
+      </fluent-button>
+      <div id="copyResult"></div>
+    </fluent-card>
+    </fluent-dialog>
+  </fluent-design-system-provider>
+
+</body>
+
+</html>

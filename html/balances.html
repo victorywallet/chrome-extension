@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Victory Wallet</title>
+    <script src="../dist/balances.js"></script>
+    <style>
+        body {
+            background-color: #222;
+            font-family: monospace;
+            --body-font: monospace;
+        }
+
+        #main {
+            width: 80ch;
+            height: 106ch;
+            padding: 3ch;
+            margin: 0 auto;
+            font-size: medium;
+            background-color: black;
+        }
+
+        .bt1 {
+            padding: 8px;
+            margin-left: 2ch;
+            color: black;
+            border: none;
+            cursor: pointer;
+            font-family: monospace;
+        }
+
+        .ico {
+            height: 2ch;
+            vertical-align: top;
+        }
+
+        .line {
+            display: flex;
+            border-radius: 5px;
+            margin-top: 1ch;
+            margin-right: 2ch;
+            padding: 1ch;
+        }
+
+        .line img {
+            width: 4ch;
+            align-self: center;
+            margin-right: 2ch;
+        }
+
+        .line0 {
+            width: 100%;
+        }
+
+        .line1 {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .line2 {
+            color: aqua;
+        }
+
+        fluent-list {
+            display: block;
+            height: 594px;
+            overflow: auto;
+        }
+
+        fluent-list-item:hover {
+            background-color: #222;
+        }
+
+        a {
+            color: whitesmoke;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="main">
+        <fluent-design-system-provider base-layer-luminance="0.02" accent-base-color="#00FFFF">
+
+            <h1 id="title">Balances on</h1>
+            <p id="wallet"></p>
+            <div style="display: flex;">
+
+                <fluent-text-field id="date" placeholder="Date"></fluent-text-field>
+
+                <button class="bt1" appearance="accent" id="queryBtn"> Query </button>
+
+            </div>
+
+            <p id="errorOutput" style="color: red;"></p>
+
+            <h2 id="sum"></h2>
+
+            <fluent-list id="tokens">
+            </fluent-list>
+        </fluent-design-system-provider>
+
+    </div>
+
+
+</body>
+
+</html>

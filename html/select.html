@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Victory Wallet</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: monospace;
+            --body-font: monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+            color: white;
+        }
+        .container {
+            background-color: #111;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        .header {
+            display: flex;
+            flex-flow: column;
+            margin-bottom: 3ch;
+        }
+
+        .item {
+            display: flex; 
+            height: 45px; 
+            margin-bottom: 3ch; 
+            padding: 1ch;
+            cursor: pointer;
+            border-radius: 5px;
+            border-style: solid;
+            border-color: transparent;
+        }
+
+        .item img{
+            margin-right: 2ch;
+        }
+
+        .item span{
+            font-size: 1.7em;
+        }
+
+        .item:hover {
+            background-color: #333;
+            border-color: aqua;
+        }
+
+       
+    </style>
+</head>
+<body>  
+    <script src="../dist/select.js"></script>
+    <div class="container">
+        <div class="header">
+            <h1>Select a wallet provider</h1>
+        </div>
+        <div id="list">
+
+        </div>
+    </div>
+</body>
+</html>

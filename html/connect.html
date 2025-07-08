@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Victory Wallet</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: monospace;
+            --body-font: monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+            color: white;
+        }
+        .container {
+            background-color: #111;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
+        .header {
+            display: flex;
+            flex-flow: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .header select {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .logo {
+            margin: 1cap 0;
+            height: 50px;
+        }
+        .url {
+            color: aqua;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 45px;
+        }
+        .buttons button {
+            padding: 10px 20px;
+            border: solid;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: monospace;
+        }
+        .confirm {
+            background-color: aqua;
+            color: black;
+        }
+        .cancel {
+            background-color: black;
+            color: aqua;
+        }
+
+        #wallet{
+            border-style: solid;
+            border-radius: 5px;
+            padding: 5px;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>  
+    <script src="../dist/connect.js"></script>
+    <div class="container">
+        <div class="header">
+            <h1>Connect current wallet</h1>
+            <div id="wallet"></div>
+            <h2>With :</h2>
+        </div>
+        <div>
+            <img class="logo" alt="Logo">
+        </div>
+        <div class="url">
+        </div>
+        <p>This will share your address, balances and activity with the web page</p>
+        <p>Only connect to websites you trust</p>
+        <div class="buttons">
+            <button class="confirm">Confirm</button>
+            <button class="cancel">Cancel</button>
+        </div>
+    </div>
+</body>
+</html>
