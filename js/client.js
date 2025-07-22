@@ -9,6 +9,8 @@ export class WebSocketClient {
 
 
     connect() {
+        console.log("ws.connect")
+
         this.ws = new WebSocket(this.wssUrl);
 
         // Handle connection open
@@ -120,7 +122,6 @@ export class WebSocketClient {
                 params              
             })
             .then(p => {
-                console.log(p)
                 this.subscriptions.set(p.result,{callback})
                 resolve(p)
             })

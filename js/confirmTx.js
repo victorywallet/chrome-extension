@@ -97,6 +97,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('toLbl').textContent = (e.tx.data && e.tx.data.length>3) ? "Interact with" : "To"
           
         tx = e.tx
+        delete tx.gasPrice
+
         if (!tx.type) tx.type = 2
         if (!tx.gasLimit) tx.gasLimit = tx.gas
         if (!tx.gasLimit) {
@@ -222,6 +224,12 @@ async function work() {
     const simulContainer = document.getElementsByClassName("simul-container")[0]
     simulContainer.innerHTML = `<div>${fnName}</div>`
 
+    if(fnCode=="095ea7b3") {
+        const data = decodeParameters(["address","uint256"],tx.data.slice(10))
+        console.log("approve data", data)
+        let linkTo = item.selected.chainId == "0x1" ? "https://eth.blockscout.com/api/v2/addresses/" : "https://apphex.win/blockscout/#/address/"
+        simulContainer.innerHTML += `<a href="${linkTo}${data[0]}">${data[0]}</a>`
+    }
 
     if(item.selected.chainId == "0x1") {
 

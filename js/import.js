@@ -130,7 +130,7 @@ async function loadTrezor(bip44, offset) {
   my_wallets = await getStoredWallets()
 
   const walletDiv = document.getElementsByClassName("wallet")
-  console.log(walletDiv)
+
   for (var i = 0; i < walletDiv.length; i++) {
     walletDiv[i].style.display = "none"
     const clone = walletDiv[i].cloneNode(true);
@@ -148,8 +148,8 @@ async function loadTrezor(bip44, offset) {
     
     for(var i=0;i<5;i++) {
       let acc=0,addr=0;
-      if(bip44=="accouts") acc=i;
-      if(bip44=="addresses") addr=i;
+      if(bip44=="accounts") acc=i+offset;
+      if(bip44=="addresses") addr=i+offset;
       bundle.push( { path: `m/44'/60'/${acc}'/0/${addr}`, showOnTrezor: false } )
     }
 
@@ -158,11 +158,9 @@ async function loadTrezor(bip44, offset) {
       bundle.push( { path , showOnTrezor: false } )
     }
 
-    console.log(bundle)
 
     const result = await TrezorConnect.ethereumGetAddress({bundle});
 
-    console.log(result)
 
     if(result.success) {
       for (var i = 0; i < result.payload.length; i++) {
@@ -230,34 +228,12 @@ async function displayWallet(i, bt, address, device, path) {
   check.addEventListener("click", () => bindValues())
   label.addEventListener("keyup", () => bindValues())
   color1.addEventListener("keyup", () => bindValues())
-
-  /*
-        bt.addEventListener("click", () => {
-          bt.checked = !bt.checked
-          bt.innerText = !bt.checked ? txt : txt.padEnd(70, "\u00A0") + "[YES]";
-  
-          my_wallets[address] =  { 
-            checked: bt.checked, 
-            device: "ledger", 
-            path,
-            label: "Ledger_" + address.slice(0, 6) 
-          }
-  
-          console.log(my_wallets)
-          saveStoredWallets(my_wallets)
-  
-          if(bt.checked) {
-            //getOnLineTxs(address)
-          }
-        })*/
-  //addressOutput.appendChild(bt)
 }
 
 
 async function getStoredWallets() {
   try {
     const items = await storage.get('wallets')
-    console.log(items)
     if (items.wallets == undefined) {
       items.wallets = {}
     }

@@ -710,15 +710,7 @@ class LegacyProvider extends events__WEBPACK_IMPORTED_MODULE_0__.EventEmitter{
         this.isVictory = true; 
         this.isMetaMask = true; 
         this.id = 0; 
-        this.on("newListener", ()=>{
-             e=>console.log("legacy newListener",e)
-        /*     if(this.currentProvider != null) {
-                providerDetail.provider.on(evt, (args) => {
-                    console.log("emit",evt)
-                    this.emit(evt, args)
-                })
-             }*/
-        })
+        this.on("newListener", ()=>{  })
         this._metamask = new class { isUnlocked() { new Promise(resolve => resolve(true))}}
         this.providers = [this]
         //this.chainId = "0x171"
@@ -732,18 +724,18 @@ class LegacyProvider extends events__WEBPACK_IMPORTED_MODULE_0__.EventEmitter{
 
 
     send(data) {
-        console.log("send", data)
+        //console.log("send", data)
         return this.request(data)
     }
 
     sendAsync(data) {
-        console.log("sendAsync", data)
+        //console.log("sendAsync", data)
         return this.request(data)
     }
 
     request(data) {
 
-        console.log("legacy request", data)
+        //console.log("legacy request", data)
         
         if(this.currentProvider==null && providerList.length==1) {
             this.currentProvider = providerList[0].provider
@@ -804,12 +796,11 @@ try{
     Object.defineProperty(window, 'ethereum', {
         value: new Proxy(new LegacyProvider(), {
         get(target, prop) {
-            
             //console.log("legacy",prop)
             if(target[prop]!=undefined)
                 return target[prop]
             else if(target.currentProvider) {
-                console.log("legacy from provider",prop, target.currentProvider[prop])
+                //console.log("legacy from provider",prop, target.currentProvider[prop])
                 return target.currentProvider[prop]
             }
         }

@@ -188,13 +188,13 @@ interalEvents.on("REQUEST_INTERNAL", e => {
 })
 
 .on("POPUP_READY", e => {
-  console.log('POPUP_READY', e)
+  //console.log('POPUP_READY', e)
   trySubscribe() 
   e.reply({})
 })
 
 .on("POPUP_VISIBILITY", e=> {
-  console.log('POPUP_VISIBILITY', e.params)
+  console.log('POPUP_VISIBILITY', e.params.visible)
   if(e.params.visible) trySubscribe() 
   e.reply({})
 })

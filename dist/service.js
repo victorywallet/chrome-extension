@@ -23,6 +23,8 @@ class WebSocketClient {
 
 
     connect() {
+        console.log("ws.connect")
+
         this.ws = new WebSocket(this.wssUrl);
 
         // Handle connection open
@@ -134,7 +136,6 @@ class WebSocketClient {
                 params              
             })
             .then(p => {
-                console.log(p)
                 this.subscriptions.set(p.result,{callback})
                 resolve(p)
             })
@@ -18947,10 +18948,10 @@ interalEvents.on("SELECT_WALLET", async e => {
   for (const listeningTab of listeningTabs) {
     const p = await chrome.tabs.get(listeningTab[0])
     const host = new URL(p.url).host
+    let connected = false
 
     if (host == listeningTab[1]) {   //host changed ?
-      const connected = await isConnectedHost(selectedWallet, new URL(p.url).host, "true")
-
+      connected = await isConnectedHost(selectedWallet, new URL(p.url).host, "true")
 
       if (connected) {
         chrome.tabs.sendMessage(p.id, { target: T, event: "accountsChanged", params: [selectedWallet] })
@@ -19009,13 +19010,13 @@ interalEvents.on("REQUEST_INTERNAL", e => {
 })
 
 .on("POPUP_READY", e => {
-  console.log('POPUP_READY', e)
+  //console.log('POPUP_READY', e)
   trySubscribe() 
   e.reply({})
 })
 
 .on("POPUP_VISIBILITY", e=> {
-  console.log('POPUP_VISIBILITY', e.params)
+  console.log('POPUP_VISIBILITY', e.params.visible)
   if(e.params.visible) trySubscribe() 
   e.reply({})
 })
@@ -19466,36 +19467,40 @@ async function requestWS(message) {
 
 
 //######### TABS ##############################
-chrome.tabs.onActivated.addListener( activeInfo => 
-  chrome.tabs.get(activeInfo.tabId, (tab) => {
+chrome.tabs.onActivated.addListener( async activeInfo => {
+  const tab = await chrome.tabs.get(activeInfo.tabId)
+  let connected = false
     if(tab?.url?.length==0) {
-      chrome.action.setIcon({path: chrome.runtime.getURL("icons")+`/victory2.png`})
     }
     else if(tab?.url?.startsWith(chrome.runtime.getURL(""))) {
-      chrome.action.setIcon({path: chrome.runtime.getURL("icons")+`/victory2on.png`})
+      connected = true
     }
     else {
-      isConnectedHost(selectedWallet, new URL(tab.url).host, "true").then(connected => 
-        chrome.action.setIcon({path: chrome.runtime.getURL("icons")+`/victory2${connected?"on":""}.png`}))
+      connected = await isConnectedHost(selectedWallet, new URL(tab.url).host, "true")
     }
-  })
+
+    chrome.action.setIcon({path: chrome.runtime.getURL("icons")+`/victory2${connected?"on":""}.png`})
+  }
 );
 
-chrome.tabs.onUpdated.addListener( (tabId, info) => {
+chrome.tabs.onUpdated.addListener( async (tabId, info) => {
 
   if(info.status==chrome.tabs.TabStatus.LOADING) {
     listeningTabs.delete(tabId)
+    let connected = false
 
     if(info.url?.length==0) {
-      chrome.action.setIcon({path: chrome.runtime.getURL("icons")+`/victory2.png`})
+      
     }
     else if(info.url?.startsWith(chrome.runtime.getURL(""))) {
-      chrome.action.setIcon({path: chrome.runtime.getURL("icons")+`/victory2on.png`})
+      connected = true
     }
     else {
-      isConnectedHost(selectedWallet, new URL(info.url).host, "true").then(connected => 
-        chrome.action.setIcon({path: chrome.runtime.getURL("icons")+`/victory2${connected?"on":""}.png`}))
+      connected = await isConnectedHost(selectedWallet, new URL(info.url).host, "true")
     }
+    
+    chrome.action.setIcon({path: chrome.runtime.getURL("icons")+`/victory2${connected?"on":""}.png`})
+    
   }
 });
 
@@ -19515,16 +19520,7 @@ async function isConnectedHost(wallet, host, value) {
     console.log("storage connect not found")
   }
 
-
   return item?.connect?.[wallet]?.[host] == value;
-  /*
-  if (item.connect == undefined || item.connect[wallet] == undefined || item.connect[wallet][host] == undefined) {
-    return false
-  }
-  else {
-    return item.connect[wallet][host] == value
-  }
-  */
 }
 
 

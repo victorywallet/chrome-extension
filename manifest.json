@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Victory",
-  "version": "1.5",
+  "name": "Victory Wallet",
+  "version": "1.8",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuWWobqP9MWkm3PM/utTNAzeuGeHz0J/1cjSIvDlsjy7se1m/AtT4H7N24ylycSwjPXYxgVKnMa7Yq5l4eLdrJzwN2m96uzZSJHBpK0ZHEvkaEBBuicdSchjUO1HcJKOan2Az9jrqEZWIctbFUMEa+6+ntm3w2TbPK22nX2EkAyeOli+CQzsugQBve39yh8WvGsU76r45zXmnpCJpqsJUWu1oML9il+OonmYXvaq7v6Vxi8E22gta7MVqbjTRePwXEmaVawRB11BMainYnUNAgsPyezH6F9hTOk1oL3tToMMhlRSAk9ANt2rri2VxFpUmK7W2z5+7FPvykAdD7wya2QIDAQAB",
   "description": "An other crypto wallet ",
   "icons": {

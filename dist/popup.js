@@ -42098,11 +42098,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+const WPLS = "0xa1077a294dde1b09bb078844df40758a5d0f9a27"
 const INC = "0x2fa878Ab3F87CC1C9737Fc071108F904c0B0C95d"
 const PLSX ="0x95B303987A60C71504D99Aa1b13B4DA07b0790ab";
 const HEXADDR = "0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39";
 const HEXfromETH = "0x57fde0a71132198BBeC939B98976993d8D89D225";
 const HEXfromPLS = "0x46F6e9BbcCe8638b20EBBC83D33a2B5bfA9B7894";
+const eDAI = "0xefD766cCb38EaF1dfd701853BFCe31359239F305"
+const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
 
 let wallets
 
@@ -42198,9 +42202,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   });
 
-  const item = await chrome.storage.local.get('selected')
 
   wallets = await getStoredWallets()
+
+  //console.log("wallets",wallets)
+
   walletSelect.innerHTML =  `<fluent-option value="import" style="color:#111; background-color:#eee"; font-weight:bolder;>Add Wallets</fluent-option>`
 
 
@@ -42211,20 +42217,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       .filter(p => wallets[p].checked)
       .map(key => `<fluent-option value="${key}" style="border-color:${wallets[key].color1}">${wallets[key].label}</fluent-option>`).reduce((a, b) => a + b, "")
   }
+  else {
+    document.getElementById("welcome").hidden=false
+  }
 
   await delay(1)
+ 
+  const item = await chrome.storage.local.get('selected')
+  if(item.selected) {
+    walletSelect.value = item.selected.wallet
+    chainSelect.value = item.selected.chainId
+  }
 
-  walletSelect.value = item.selected.wallet
-  chainSelect.value = item.selected.chainId
 
-
-
-
-    if(item.selected.wallet) {
-      //walletSelect.style.borderColor = wallets[walletSelect.value].color1
-      walletSelect.style.borderImage = `linear-gradient(aqua,${wallets[walletSelect.value].color1}) 1`
-      topCard.style.background =  `linear-gradient(180deg, ${wallets[walletSelect.value].color1} -10%, #0ff7 100%)`
-    }
+  if(item.selected?.wallet) {
+    //walletSelect.style.borderColor = wallets[walletSelect.value].color1
+    walletSelect.style.borderImage = `linear-gradient(aqua,${wallets[walletSelect.value].color1}) 1`
+    topCard.style.background =  `linear-gradient(180deg, ${wallets[walletSelect.value].color1} -10%, #0ff7 100%)`
+  }
 
     
   walletSelect.addEventListener("change", async (e) => {
@@ -42237,6 +42247,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         await chrome.storage.local.set({ selected: { wallet: walletSelect.value, chainId: chainSelect.value } })
         await chrome.runtime.sendMessage({ type: "SELECT_WALLET" })
+
+        //document.getElementById("tokens").querySelectorAll("div").forEach(p=>p.textContent="")
+
         updateContent(walletSelect.value, chainSelect.value)
       }
       else {
@@ -42249,6 +42262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   chainSelect.addEventListener("change", async (e) => {
       await chrome.storage.local.set({ selected: { wallet: walletSelect.value, chainId: chainSelect.value } })
       await chrome.runtime.sendMessage({ type: "SELECT_CHAIN" })
+      document.getElementById("tokens").querySelectorAll("div").forEach(p=>p.textContent="")
       updateContent(walletSelect.value, chainSelect.value)
     })
 
@@ -42301,15 +42315,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     menu1.focus()
   })
 
-  /*
-  menu1.addEventListener('focusout' ,(e)=>{
-    console.log(e)
-    menu1.toggleAttribute("hidden")
-  })
-
-  menu2.addEventListener('focusout' ,()=>{
-    menu2.toggleAttribute("hidden")
-  })*/
+  document.getElementById("import").addEventListener('click', ()=>chrome.tabs.create({
+          url: chrome.runtime.getURL("html/import.html")
+        })
+  )
 
   menu1.addEventListener('change',e=>{
     console.log(e.target.id)
@@ -42371,86 +42380,76 @@ const BalanceOfAbi = {
 }
 
 async function refresh(wallet) {
-  const balance = await chrome.runtime.sendMessage({
-    type: "REQUEST_INTERNAL",
-    params: { method: 'eth_getBalance', params: [wallet, 'latest'] }
-  })
     
   const chainSelect = document.getElementById('chain');
-  const UNIT = chainSelect.value == "0x1" ? "ETH" : "PLS"
-  //const bal = document.getElementsByClassName('balance')[0];
-  //bal.textContent = (Number(bal2)/1000000).toLocaleString({ maximumFractionDigits: Math.max(0, 12 - String(bal2).length) }) + " " + UNIT
-    
-  /*
-  const price = await chrome.runtime.sendMessage({
-      type: "RESERVES_PRICE",
-      params: {
-          lp: chainSelect.value == "0x1" ? "0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852" : "0xE56043671df55dE5CDf8459710433C10324DE0aE",
-          factor: chainSelect.value == "0x1" ? 14 : 8
-      }
-  })
-
-
-  const amount = (bal2*BigInt(price))/BigInt(chainSelect.value == "0x1" ? 1e8 : 1e14)
-  document.getElementsByClassName('amount')[0].textContent = amount.toLocaleString() + " USD"
-*/
-
-  const tokens = document.getElementById("tokens");
+  const tokens = document.getElementById("tokens").querySelectorAll("div")
 
 
   if(chainSelect.value == "0x1") {
 
-    const native = await tokenBalanceAmount("ETH", BigInt(balance.result), "0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852", 14n, 2n , 18n)
-
-    tokens.innerHTML = native
-
-    const hexBal =  (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.decodeParameter)('uint256', await chrome.runtime.sendMessage({
-        type: "REQUEST_INTERNAL",
-        params: { method: 'eth_call', params: [{to: HEXADDR, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(BalanceOfAbi,[wallet])}, 'latest'] }
-    }))
-
-    tokens.innerHTML += await tokenBalanceAmount("eHEX", hexBal.result, "0xF6DCdce0ac3001B2f67F750bc64ea5beB37B5824", 8n , 6n, 8n)
-  }
-  else if(chainSelect.value == "0x171") {
-
-    const native = await tokenBalanceAmount("PLS", BigInt(balance.result), "0xE56043671df55dE5CDf8459710433C10324DE0aE", 8n, 8n , 18n)
-
-    tokens.innerHTML = native
+    const UNI_ROUTER = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 
     const data1 =  await chrome.runtime.sendMessage({
         type: "REQUEST_INTERNAL",
         params: [
+          {id:0, method: 'eth_getBalance', params: [wallet, 'latest'] },
+          {id:3, method: 'eth_call', params: [{to: HEXADDR, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(BalanceOfAbi,[wallet])}, 'latest'] },
+          {id:4, method: 'eth_call', params: [{to: UNI_ROUTER, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(getAmountsOutAbi,["1000000000000000000",[WETH,DAI]])}, 'latest'] },
+          {id:7, method: 'eth_call', params: [{to: UNI_ROUTER, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(getAmountsOutAbi,["100000000",[HEXADDR,WETH,DAI]])}, 'latest'] },
+        ]
+    })
+
+    //console.log(data1)
+    const data2 = data1.slice(0,2).map((p,i)=>i==0?BigInt(p.result):(0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.decodeParameter)('uint256',p.result))
+
+    const prices2 = data1.slice(2,4).map(p=>(0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.decodeParameter)('uint256[]',p.result))
+    //console.log(prices2)
+
+    const tokenList = {"ETH":18n, "HEX": 8n}
+    let index = 0
+    let index2 = 0
+    for(const token of Object.entries(tokenList)) {
+      //console.log(token[0], prices2[index2] , data2[index2], token[1] )
+      tokens[index++].textContent = tokenBalanceAmount2(token[0], prices2[index2] , data2[index2], token[1] )
+      tokens[index++].textContent = tokenValue2(prices2[index2] , data2[index2], token[1])
+      index2++
+    }
+
+  }
+  else if(chainSelect.value == "0x171") {
+
+    const PLSX_ROUTER = "0x165C3410fC91EF562C50559f7d2289fEbed552d9"
+
+    const data1 =  await chrome.runtime.sendMessage({
+        type: "REQUEST_INTERNAL",
+        params: [
+          {id:0, method: 'eth_getBalance', params: [wallet, 'latest'] },
           {id:1, method: 'eth_call', params: [{to: PLSX, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(BalanceOfAbi,[wallet])}, 'latest'] },
           {id:2, method: 'eth_call', params: [{to: INC, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(BalanceOfAbi,[wallet])}, 'latest'] },
           {id:3, method: 'eth_call', params: [{to: HEXADDR, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(BalanceOfAbi,[wallet])}, 'latest'] },
-          {id:4, method: 'eth_call', params: [{to: HEXfromETH, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(BalanceOfAbi,[wallet])}, 'latest'] },
+          {id:4, method: 'eth_call', params: [{to: PLSX_ROUTER, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(getAmountsOutAbi,["1000000000000000000",[WPLS,eDAI]])}, 'latest'] },
+          {id:5, method: 'eth_call', params: [{to: PLSX_ROUTER, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(getAmountsOutAbi,["1000000000000000000",[PLSX,WPLS,eDAI]])}, 'latest'] },
+          {id:6, method: 'eth_call', params: [{to: PLSX_ROUTER, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(getAmountsOutAbi,["1000000000000000000",[INC,WPLS,eDAI]])}, 'latest'] },
+          {id:7, method: 'eth_call', params: [{to: PLSX_ROUTER, data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(getAmountsOutAbi,["100000000",[HEXADDR,WPLS,eDAI]])}, 'latest'] },
         ]
     })
 
-    const data2 = data1.map(p=>(0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.decodeParameter)('uint256',p.result))
+    //console.log(data1)
+    const data2 = data1.slice(0,4).map((p,i)=>i==0?BigInt(p.result):(0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.decodeParameter)('uint256',p.result))
 
-    const reserves =  await chrome.runtime.sendMessage({
-        type: "REQUEST_INTERNAL",
-        params: [
-          {id:1, method: 'eth_call', params: [{to: "0x1b45b9148791d3a104184cd5dfe5ce57193a3ee9", data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(reservesAbi,[])}, 'latest'] },
-          {id:2, method: 'eth_call', params: [{to: "0xf808bb6265e9ca27002c0a04562bf50d4fe37eaa", data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(reservesAbi,[])}, 'latest'] },
-          {id:3, method: 'eth_call', params: [{to: "0xf1f4ee610b2babb05c635f726ef8b0c568c8dc65", data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(reservesAbi,[])}, 'latest'] },
-          {id:4, method: 'eth_call', params: [{to: "0xf1f4ee610b2babb05c635f726ef8b0c568c8dc65", data: (0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.encodeFunctionCall)(reservesAbi,[])}, 'latest'] },
-        ]
-    })
+    const prices2 = data1.slice(4,8).map(p=>(0,web3_eth_abi__WEBPACK_IMPORTED_MODULE_1__.decodeParameter)('uint256[]',p.result))
+    //console.log(prices2)
 
-    const reserves2 = reserves.map((p,i)=>console.log(i,p.result))//decodeParameters(['uint112', 'uint112', 'uint32'],p))
-
-    let tokensHtml = await tokenBalanceAmount("PLSX", data2[0], "0x1b45b9148791d3a104184cd5dfe5ce57193a3ee9", 1n , 10n, 18n)
-    tokensHtml += await tokenBalanceAmount("INC", data2[1], "0xf808bb6265e9ca27002c0a04562bf50d4fe37eaa", 1n , 10n, 18n)
-    tokensHtml += await tokenBalanceAmount("pHEX", data2[2], "0xf1f4ee610b2babb05c635f726ef8b0c568c8dc65", 1n , 10n, 8n)
-    tokensHtml += await tokenBalanceAmount("eHEX", data2[3], "0xf1f4ee610b2babb05c635f726ef8b0c568c8dc65", 1n , 10n, 8n)
-    
-    console.log(tokensHtml)
-    tokens.innerHTML += tokensHtml
+    const tokenList = {"PLS":18n, "PLSX":18n, "INC": 18n, "HEX": 8n}
+    let index = 0
+    let index2 = 0
+    for(const token of Object.entries(tokenList)) {
+      //console.log(token[0], prices2[index2] , data2[index2], token[1] )
+      tokens[index++].textContent = tokenBalanceAmount2(token[0], prices2[index2] , data2[index2], token[1] )
+      tokens[index++].textContent = tokenValue2(prices2[index2] , data2[index2], token[1])
+      index2++
+    }
   }
-
-
 }
  
 async function tokenBalanceAmount(ticker, bal, lp, factor, lpConvert ,decimals,) {
@@ -42470,6 +42469,24 @@ async function tokenBalanceAmount(ticker, bal, lp, factor, lpConvert ,decimals,)
           </h3>`
 }
 
+function tokenBalanceAmount2(ticker, price, bal ,decimals) {
+  let precision=0n;
+
+  while(price.at(-1)/10n**(precision+18n)>0n)
+    precision++
+  
+  return `${(Number(bal/10n**(decimals-precision))/10**Number(precision)).toLocaleString(navigator.language, {maximumFractionDigits:18})} ${ticker}`
+}
+
+function tokenValue2( price, bal ,decimals) {
+
+  console.log( price, bal, decimals)
+  return `${((bal*price.at(-1))/10n**(18n+decimals)).toLocaleString(navigator.language)} USD`
+}
+
+function countZerosBigInt(num) {
+    return BigInt(String(num).split('').filter(char => char === '0').length);
+}
 
 const reservesAbi = {
   name: 'getReserves',
@@ -42478,6 +42495,32 @@ const reservesAbi = {
   inputs: [],
   outputs: []
 }
+
+const getAmountsOutAbi = {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amountIn",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address[]",
+                "name": "path",
+                "type": "address[]"
+            }
+        ],
+        "name": "getAmountsOut",
+        "outputs": [
+            {
+                "internalType": "uint256[]",
+                "name": "amounts",
+                "type": "uint256[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+
 
 async function getReservePrice(lp, factor) {
 
