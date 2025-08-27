@@ -1,13 +1,4 @@
 console.log("connect.js")
-/*
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {   
-    console.log("recv connect.js", request, sender)
-
-    sendResponse({result:"ok"})
-  
-    document.getElementsByClassName("url")[0].textContent = sender
-});
-*/
 
 document.addEventListener('DOMContentLoaded',async () => {
 
@@ -29,12 +20,15 @@ document.addEventListener('DOMContentLoaded',async () => {
             .then(()=>window.close()))
 
     window.addEventListener('abort', () => 
-            chrome.runtime.sendMessage({type:"CONNECT_CANCEL"})
+            chrome.runtime.sendMessage({type:"CONNECT_CLOSE"})
             .then(()=>window.close()))
-    
+
+     window.addEventListener('blur', () => 
+            chrome.runtime.sendMessage({type:"CONNECT_CLOSE"})
+            .then(()=>window.close()))
 
     window.addEventListener('beforeunload', (event) => 
-        chrome.runtime.sendMessage({type:"CONNECT_CANCEL"}))
+        chrome.runtime.sendMessage({type:"CONNECT_CLOSE"}))
     
 })
 
@@ -42,7 +36,5 @@ document.addEventListener('DOMContentLoaded',async () => {
 chrome.runtime.sendMessage({type:"CONNECT_READY"}).then(e=>{
     document.getElementsByClassName('url')[0].textContent = e.host
     document.getElementsByClassName('logo')[0].src = e.icon
-
 })
 
-//chrome.runtime.onDisconnect.addEventListener(p=>console.log("diconnected"))

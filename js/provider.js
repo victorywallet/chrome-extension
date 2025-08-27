@@ -39,6 +39,10 @@ class EIP6963Provider extends EventEmitter {
     enable() {
         return this.request({ method: 'eth_requestAccounts' });
     }
+
+    getSigner(index) {
+        return this.request({ method: 'eth_requestAccounts' });
+    }
 }
 
 window.addEventListener('message',e=>{
@@ -81,6 +85,7 @@ function announceProvider() {
     window.dispatchEvent(new CustomEvent('eip6963:announceProvider', {
         detail: new Proxy( providerDetail, {
             get(target, prop) {
+                console.log("EIP6963", prop)
                 if(target[prop]==undefined) console.log("EIP6963 unknown prop",prop)
                 return target[prop]
             }
@@ -125,7 +130,6 @@ class LegacyProvider extends EventEmitter{
         this.on("newListener", ()=>{  })
         this._metamask = new class { isUnlocked() { new Promise(resolve => resolve(true))}}
         this.providers = [this]
-        //this.chainId = "0x171"
         this.currentProvider = null;
     }
     
@@ -133,6 +137,9 @@ class LegacyProvider extends EventEmitter{
         return true
     }
 
+    getSigner() {
+        return this.selectedAddress
+    }
 
 
     send(data) {
@@ -206,13 +213,11 @@ class LegacyProvider extends EventEmitter{
 try{
 
     Object.defineProperty(window, 'ethereum', {
-        value: new Proxy(new LegacyProvider(), {
+        value: new Proxy({currentProvider :new LegacyProvider()}, {
         get(target, prop) {
-            //console.log("legacy",prop)
             if(target[prop]!=undefined)
                 return target[prop]
             else if(target.currentProvider) {
-                //console.log("legacy from provider",prop, target.currentProvider[prop])
                 return target.currentProvider[prop]
             }
         }

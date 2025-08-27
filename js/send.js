@@ -164,6 +164,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('send').addEventListener("click", async () => {
 
+        if(to.value.length<42 || amount.value.length==0) {
+            return
+        }
 
         if(tokenSelected.native_token) {
             const ret = await chrome.runtime.sendMessage({
@@ -173,13 +176,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     tx: {
                         from: sender,
                         to: to.value.trim(),
-                        value: ethToWei(amount.value.trim())
+                        value: ethToWei(amount.value.toString().trim())
                     }
                 }
             })    
         }
         else {
-            const amountConverted = amount.value.trim()*10**tokenSelected.decimals
+            console.log(amount.value)
+            const amountConverted = amount.value.toString().trim()*10**tokenSelected.decimals
             const data = encodeFunctionCall(TransferAbi,[to.value, amountConverted])
 
             const ret = await chrome.runtime.sendMessage({

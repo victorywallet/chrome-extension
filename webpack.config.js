@@ -21,7 +21,7 @@ module.exports = {
   },
   
   target: 'web',
-  mode: 'development',
+  mode: 'production',
   devtool: false,
 
   resolve: {

@@ -409,14 +409,18 @@ async function walletRequest(message,sender,sendResponse) {
         });
 
         interalEvents.once('CONNECT_CANCEL', async e => {
+          console.log("CONNECT_CANCEL")
           if (e.sender.tab.windowId == popup.id) {
             await setConnectedHost(selectedWallet, host, "false")
-            sendResponse({  error:
-              {
-                code: 4001,
-                message: "User rejected the request."
-              }
-            })
+            sendResponse({  error:  {code: 4001, message: "User rejected the request."}})
+            e.reply({})
+          }
+        });
+
+        interalEvents.once('CONNECT_CLOSE', async e => {
+          console.log("CONNECT_CLOSE")
+          if (e.sender.tab.windowId == popup.id) {
+            sendResponse({  error:    {code: 4001, message: "User rejected the request."}})
             e.reply({})
           }
         });
@@ -698,11 +702,17 @@ async function isConnectedHost(wallet, host, value) {
     console.log("storage connect not found")
   }
 
+  console.log("isConnectedHost",wallet, host,  item?.connect?.[wallet]?.[host])
+
+
   return item?.connect?.[wallet]?.[host] == value;
 }
 
 
 async function setConnectedHost(wallet, _host_, value) {
+
+console.log("setConnectedHost",wallet, _host_, value)
+
   let item = { connect: {} }
   try {
     item = await chrome.storage.local.get("connect")
