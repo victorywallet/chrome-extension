@@ -15,8 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
     errorOutput = document.getElementById("errorOutput")
     sumElt = document.getElementById("sum")
     list = document.getElementById("tokens")
+    
     document.getElementById("queryBtn").addEventListener('click', () => {
         getTokens(selected.wallet, chains[selected.chainId].id, document.getElementById("date").value)
+    })
+
+    document.getElementById("nowBtn").addEventListener('click', () => {
+        getTokens(selected.wallet, chains[selected.chainId].id, null)
     })
 
     const now = new Date()
@@ -60,15 +65,22 @@ async function getTokens(wallet, chain, date) {
     };
 
     try {
+        let block=null
         const urlDate = `https://deep-index.moralis.io/api/v2.2/dateToBlock?chain=${chain}&date=${date}`
-        const blockResponse = await fetch(urlDate, options)
+        let urlTokens = `https://deep-index.moralis.io/api/v2.2/wallets/${wallet}/tokens?chain=${chain}&exclude_spam=true`;
 
-        if (!blockResponse.ok) {
-            throw new Error(`HTTP error! Status: ${blockResponse.status}`);
+        if(date) {
+            const blockResponse = await fetch(urlDate, options)
+
+            if (!blockResponse.ok) {
+                throw new Error(`HTTP error! Status: ${blockResponse.status}`);
+            }
+            const resp = await blockResponse.json();
+            block = resp.block
+
+            urlTokens = `https://deep-index.moralis.io/api/v2.2/wallets/${wallet}/tokens?chain=${chain}&to_block=${block}&exclude_spam=true`;
         }
-        const block = await blockResponse.json();
-
-        const urlTokens = `https://deep-index.moralis.io/api/v2.2/wallets/${wallet}/tokens?chain=${chain}&to_block=${block.block}&exclude_spam=true`;
+        
         const response = await fetch(urlTokens, options);
 
         if (!response.ok) {
