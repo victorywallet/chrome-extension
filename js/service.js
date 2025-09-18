@@ -10,23 +10,15 @@ class InternalEvents extends EventEmitter {
 
 }
 
-const web3rpc = {
-  "0x1": "wss://rpc-ethereum.g4mm4.io",
-  "0x171": "wss://rpc-pulsechain.g4mm4.io"
-}
-
-const explorers ={
-   "0x1": "http://etherscan.io/tx/",
-   "0x171": "https://apphex.win/@/#/tx/"
-}
 
 let chains
 
 async function init() {
   const item = await chrome.storage.local.get('chains')
 
-  if(item.chains) {
+  if(item.chains && item.chains["0x171"].rpc.indexOf("wss")<0) {
     chains = item.chains
+    console.log(chains)
   }
   else {
     chains = {
@@ -34,14 +26,14 @@ async function init() {
         id: "eth",
         symbol: "ETH",
         name: "Ethereum",
-        rpc: "wss://rpc-ethereum.g4mm4.io",
+        rpc: "https://rpc-ethereum.g4mm4.io",
         explorer: "http://etherscan.io/tx/"
       },
       "0x171" : {
         id: "pulse",
         symbol: "PLS",
         name: "PulseChain",
-        rpc: "wss://rpc-pulsechain.g4mm4.io",
+        rpc: "https://rpc-pulsechain.g4mm4.io",
         explorer: "https://apphex.win/@/#/tx/"
       },
     }
@@ -95,17 +87,17 @@ let ws;
 init().then(()=>updateSelected())
       .then(()=>
         {
-          ws = new WebSocketClient(web3rpc[selectedChainId])
-          ws.connect()
+          /*ws = new WebSocketClient(chains[selectedChainId].rpc)
+          ws.connect()*/
           trySubscribe()
         })
 
 
 interalEvents.on("SELECT_CHAIN", async e => {
   await updateSelected()
-  ws?.disconnect()
-  ws = new WebSocketClient(web3rpc[selectedChainId]);
-  ws.connect();
+  /*ws?.disconnect()
+  ws = new WebSocketClient(chains[selectedChainId].rpc);
+  ws.connect();*/
   trySubscribe(true)
 
   for (const listeningTab of listeningTabs) {
@@ -165,10 +157,17 @@ let internalId = 1
 let lastBlockTimestamp = 0;
 
 interalEvents.on("REQUEST_INTERNAL", e => {
-  requestWS({
+  /*requestWS({
       type: "INTERNAL",
       payload: e.params
-    }).then(r => e.reply(r))
+    }).then(r => e.reply(r))*/
+      makeHttpsRequest(e.params).then(r => e.reply(r))
+
+})
+
+
+interalEvents.on("REQUEST_TRACE", e => {
+  makeHttpsRequest(e.params).then(r => e.reply(r))
 })
 
 .on("CONFIRM_TX_INTERNAL", e => {
@@ -199,18 +198,36 @@ interalEvents.on("REQUEST_INTERNAL", e => {
   e.reply({})
 })
 
+let timeoutPool = null
 
 function trySubscribe(force) {
 
   console.log("deltaT", Date.now()-lastBlockTimestamp)
 
-  if(ws && (force || Date.now()-lastBlockTimestamp > 60*1000 )) {
+  //if((force || Date.now()-lastBlockTimestamp > 6*1000 ))
+     {
 
     lastBlockTimestamp = Date.now()
+    let currentBlock = 0;
 
-    ws.subscribe(["newHeads"], async (subId, header) => {
+    if(timeoutPool) clearInterval(timeoutPool)
 
-      lastBlockTimestamp = parseInt(header.timestamp)*1000 
+      timeoutPool = setInterval(async ()=>{
+
+      const block = await makeHttpsRequest({
+        method: "eth_blockNumber",
+        params:[]
+      })
+
+      if (block.result == currentBlock) {
+        return
+      }
+
+      currentBlock = block.result
+
+      const header = await makeHttpsRequest({ method: 'eth_getBlockByNumber', params: [currentBlock, false] })
+
+      lastBlockTimestamp = parseInt(header.result.timestamp)*1000 
 
       try { 
         await chrome.runtime.sendMessage({type:"NEW_BLOCK"})
@@ -228,29 +245,25 @@ function trySubscribe(force) {
       for(const addr of addresses) {
 
         const pendings = Object.entries(items[addr]) 
-        .filter(tx=>tx[1].chainId==selectedChainId && tx[1].timestamp==0)
+        .filter(tx=>tx[1].chainId==selectedChainId && (tx[1].timestamp==0 || tx[1].timestamp==undefined))
         
-        //console.log("pendings",pendings)
+        console.log("pendings",pendings)
 
         for(const pending of pendings) {
           const hash = pending[0]
-          const response = await requestWS({
-                payload: {
+          const response = await makeHttpsRequest( {
                   method: "eth_getTransactionByHash",
                   params: [hash]
-                }
               })
 
-          //console.log("eth_getTransactionByHash", response)
+          console.log("eth_getTransactionByHash", response)
 
-          if(response.result.blockNumber) {
+          if(response.result?.blockNumber) {
 
-            const receipt = await requestWS({
-              payload: {
+            const receipt = await makeHttpsRequest({
                 method: "eth_getTransactionReceipt",
                 params: [hash]
-              }
-            }) 
+            })             
 
             const result = receipt.result.status!="0x1" ? "Failed" : "Successful"
 
@@ -260,9 +273,9 @@ function trySubscribe(force) {
                 message:`Transaction ${parseInt(response.result.nonce)} ${result}`, 
                 iconUrl: chrome.runtime.getURL("icons") + "/victory2.png"
               },
-              id => notifications.set(id, explorers[selectedChainId]+hash))
+              id => notifications.set(id, chains[selectedChainId].explorer + hash))
 
-            await storeTx(addr, response.result, receipt.result , header.timestamp, pending[1].dapp)
+            await storeTx(addr, response.result, receipt.result , header.result.timestamp, pending[1].dapp)
 
             try {
               chrome.runtime.sendMessage({type:"TX_UPDATE", params: { hash: hash }})
@@ -274,23 +287,8 @@ function trySubscribe(force) {
             
         }
       }
-     
 
-        /*
-        const ret = await requestWS({ payload: {
-                            method: "eth_unsubscribe",
-                            params: [subId]
-                          }
-                        });
-
-        if(ret.error) {
-            ws = new WebSocketClient(web3rpc[selectedChainId]);
-        }
-
-        isBlockSub = false
-        */
-      
-    })
+    }, 2000)
 
   }
 }
@@ -333,7 +331,7 @@ async function walletRequest(message,sender,sendResponse) {
     case "wallet_switchEthereumChain":
       const requestChainId = (message.payload.params.chainId || message.payload.params[0].chainId)
       console.log("requestChainId", requestChainId)
-      if (web3rpc[requestChainId]) {
+      if (chains[requestChainId]) {
         await chrome.storage.local.set({ selected: { wallet: selectedWallet, chainId: requestChainId } })
 
         sendResponse({ error: null, result: null })
@@ -482,7 +480,8 @@ async function walletRequest(message,sender,sendResponse) {
 
       //console.log(">>> unknow method >>>", message.payload)
       //if (await isConnectedHost(selectedWallet, host, "true")) {
-      sendResponse(await requestWS(message))
+      //sendResponse(await requestWS(message))
+      sendResponse(await makeHttpsRequest(message.payload))
     //}
 
 
@@ -547,11 +546,9 @@ async function confirmTx(data, sendResponse) {
 
       if (e.sender.tab.windowId == popup.id) {
 
-        const hash = await requestWS({
-          payload: {
+        const hash = await makeHttpsRequest({
             method: "eth_sendRawTransaction",
             params: [e.params.rlp]
-          }
         })
 
         console.log("hash", hash)
@@ -597,52 +594,42 @@ async function confirmTx(data, sendResponse) {
     });
 }
 
-//######### REQUEST ##############################
-/*
-async function sendRequest(message) {
+async function makeHttpsRequest(payload) {
 
-  //console.log(message, JSON.stringify(message.payload))
-
-  const rpc = web3rpc[selectedChainId]
-
+  if(!Array.isArray(payload)) {
+    payload.jsonrpc = '2.0'
+    if(!payload.id) payload.id = internalId++
+  }
+  
   try {
-    const response = await fetch(rpc, {
-      method: 'POST',
-      //mode: "cors",
-      //cache: "no-cache",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      chains[selectedChainId].rpc,
+      {
+       method: "POST",
+       headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'en-US,en;q=0.5'
       },
-
-      body: JSON.stringify(message.payload),
+      credentials: 'include', // Include cookies if needed,
+      body: JSON.stringify(payload)
     });
 
-    //console.log(response)
-    if (response.ok) {
-      const data = await response.json();
-      console.log(message.payload.method, "data", data)
-      return data
-    }
-    else {
-      console.log("HTTP ERR", response.status)
-      const data = await response.text();
-      
-      await passChallenge(data)
-      //try again
-      //return await sendRequest(message)
-    }
-  }
-  catch(err) {
-    console.log("FETCH ERR", err.message)
-  }
+    const text = await response.text();
 
-  return { error: { code: -32603, message: "Internal Error" } }
+//    console.log("---",payload,text)
+
+    return JSON.parse(text);
+  } catch (error) {
+    console.log(selectedChainId, chains[selectedChainId], error)
+    throw new Error(`Request failed: ${error}`);
+  }
 }
-*/
 
 async function requestWS(message) {
     const ret = await ws.request(message.payload)
-    //console.log(message.payload.method, ret)
+    //console.log(message.payload, ret)
     return ret
 }
 
@@ -776,11 +763,9 @@ async function getTokenInfo(tokenAddr) {
     }
   ]
   //name
-  const response = await requestWS({
-    payload: calls
-  })
+  const response = await makeHttpsRequest(calls)
 
-    console.log("token",response)
+  console.log("token",response)
 
 
   const name = decodeParameter('string', response[0].result)
@@ -833,9 +818,9 @@ async function getReservePrice(lp, factor) {
     }, "latest"]
   }]
 
-  const response = await requestWS({ payload: calls })
+  const response = await makeHttpsRequest(calls[0])
 
   console.log("getReserves",response)
-  const reserves = decodeParameters(['uint112', 'uint112', 'uint32'], response[0].result)
+  const reserves = decodeParameters(['uint112', 'uint112', 'uint32'], response.result)
   return (reserves[1] * 10n ** BigInt(factor)) / reserves[0]
 }

@@ -43,7 +43,7 @@ export class WebSocketClient {
                         const { resolve } = this.pendingRequests.get(requestId);
         
                         if(Array.isArray(response)) {
-
+                            response.forEach(m=>m.id=m.id.split("-")[0])
                         }
                         else {
                             response.id = requestId.split("-")[0] // to original id
@@ -92,11 +92,15 @@ export class WebSocketClient {
         return new Promise(async (resolve, reject) => {
 
             if(Array.isArray(message) && message.length>0) {
-                message[0].id = (message[0].id ?? this.internalId) + "-" + (this.internalId++)
+                message.forEach((m,i)=>{
+                    m.id = (m.id ?? this.internalId) + "-" + (this.internalId++)
+                    m.jsonrpc = "2.0"
+                })
                 this.pendingRequests.set(message[0].id, { resolve, reject });
             }
             else {
                 message.id = (message.id ?? this.internalId) + "-" + (this.internalId++)
+                message.jsonrpc = "2.0"
                 this.pendingRequests.set(message.id, { resolve, reject });
             }
 
