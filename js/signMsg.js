@@ -53,12 +53,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     chrome.runtime.sendMessage({ type: "SIGN_READY" }).then(async e => {
                  
+console.log(e)
+
         document.getElementById('url').textContent = e.host
         document.getElementById('logo').src = e.icon
         document.getElementById('owner').textContent = e.account.slice(0,6)+"..."+e.account.slice(-4)
         document.getElementsByClassName("simul-container")[0].innerHTML = 
             e.method=="eth_signTypedData_v4" ? 
-                Object.entries(JSON.parse(e.data).message).map(p=>`${p[0]} : ${p[1]}`).join("<br>") :
+                Object.entries(JSON.parse(e.data).message).map(p=>`${p[0]} : ${JSON.stringify(p[1])}`).join("<br>") :
                 Buffer.from(e.data.replace('0x', ''), 'hex').toString('utf8');
 
         const item = await chrome.storage.local.get('selected')
@@ -104,15 +106,14 @@ async function signWithLedger(path) {
             result = await appeth.signPersonalMessage(path, hex)
         }
 
-        //console.log(result)
 //        const recover = ecrecover(Buffer.from(msg) ,v, result.r, result.s, 369)
 //        console.log('receover',recover)
 
-        let v = (result.v-27)+(35 + chainId * 2)%256
-            
+        let v =  (result.v-27)+(35 + chainId * 2)%256
+        console.log("resv",result.v,chainId)    
         console.log("v",v)
 
-        return "0x" + result.r + result.s + v.toString(16);
+        return "0x" + result.r + result.s + result.v.toString(16);
     }
     catch (error) {
         console.log(error)
