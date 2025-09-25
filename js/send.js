@@ -183,8 +183,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         else {
             console.log(amount.value)
-            const amountConverted = amount.value.toString().trim()*10**tokenSelected.decimals
-            const data = encodeFunctionCall(TransferAbi,[to.value, amountConverted])
+            const amountStr = amount.value.toString().trim()
+            const removeDecimals = amountStr.indexOf('.')<0 ? 0 : Math.min(tokenSelected.decimals , amountStr.length - amountStr.indexOf('.') + 1)
+            const slice = amountStr.indexOf('.')+removeDecimals+1
+            const amountStr2 = (slice==0?amountStr:amountStr.slice(0, slice )).replace('.','')
+
+            const amountConverted = BigInt(amountStr2) * 10n**BigInt(tokenSelected.decimals-removeDecimals)
+            console.log("amountConverted",amountConverted)
+
+            const data = encodeFunctionCall(TransferAbi,[to.value, amountConverted.toString()])
 
             const ret = await chrome.runtime.sendMessage({
                 type: "CONFIRM_TX_INTERNAL",
