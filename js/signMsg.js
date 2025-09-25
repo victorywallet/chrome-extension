@@ -109,9 +109,8 @@ async function signWithLedger(path) {
 //        const recover = ecrecover(Buffer.from(msg) ,v, result.r, result.s, 369)
 //        console.log('receover',recover)
 
-        let v =  (result.v-27)+(35 + chainId * 2)%256
-        console.log("resv",result.v,chainId)    
-        console.log("v",v)
+//        let v =  (result.v-27)+(35 + chainId * 2)%256
+//        console.log("v",v)
 
         return "0x" + result.r + result.s + result.v.toString(16);
     }
