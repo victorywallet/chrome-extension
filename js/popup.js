@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   bridgeBt.addEventListener("click",async ()=>{   
     chrome.tabs.create({
-      url: "https://bridge.mypinata.cloud/ipfs/bafybeibc2lymrjr4xq66ypudaehy5sqzndkdojcty47qoq5mwbu7hd6xnq"
+      url: "https://bridge.mypinata.cloud/ipfs/bafybeich2hj44uwg3dlrrjgop2qvt4eteenkjhp6k4dqv5i3kebpc72uca"
     });
   })
 
